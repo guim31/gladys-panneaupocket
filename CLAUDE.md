@@ -32,15 +32,20 @@ pushing.
 
 ```
 index.js                          SDK wiring only: handlers registered before connect()
-src/devices/index.js              registry of the device blueprints + dispatch helpers
-src/devices/<type>.js             one device type per file (buildDevice, onPoll, onSetValue...)
-src/scenes.js                     scene action handlers (manifest `scene_actions`)
-src/widgets.js                    dashboard widget handlers (manifest `widgets`)
+src/app.js                        registerHandlers(gladys): the wiring index.js and the tests share
+src/panneaupocket.js              client: list of emitters (JSON), emitter pages (HTML parsing)
+src/emitters.js                   the list cached under /data (once a day at most) + the search
+src/monitor.js                    discovery, page readings, states, scene trigger, widget refresh
+src/device.js                     one device per emitter (features, external ids)
+src/actions.js                    scene action `read_messages`
+src/widgets.js                    dashboard widget `messages`
+src/messages.js                   texts in en/fr/de/es, dates
 src/config.js                     DEFAULT_CONFIG (mirrors the manifest defaults) + normalization
-src/weather.js                    example driver (Open-Meteo)
-gladys-assistant-integration.json manifest: name, config_schema, actions, image...
-docs/en.md, docs/fr.md            user documentation, re-hosted by Gladys (mandatory)
+src/store.js                      atomic JSON files under /data
+gladys-assistant-integration.json manifest: name, config_schema, triggers, actions, widgets...
+docs/{en,fr,de,es}.md             user documentation, re-hosted by Gladys (mandatory)
 test/                             node --test, against the SDK's fake Gladys (integration-sdk/testing)
+test/fixtures/panneaupocket/      real pages and list excerpt recorded on 14/11/2026 (anonymized)
 .github/scripts/release.mjs       release helpers (manifest bump, changelog), tested in test/
 ```
 
@@ -214,6 +219,25 @@ code de ce dépôt. Compléter ce fichier quand un nouveau piège est découvert
 - Les filtres de scène ne font qu'égalité et appartenance : un seuil reste le travail d'un capteur.
 - **Les clés de widgets, de déclencheurs et d'actions sont figées une fois publiées.**
 - `gladys_version` `>=5.1.0` dès qu'il y a widgets, déclencheurs ou actions de scène.
+
+## PanneauPocket (relevé le 14/11/2026)
+
+- Aucune API documentée. `GET https://app.panneaupocket.com/public-api/city` : la liste JSON de tous les
+  émetteurs (≈ 16 300, 6,5 Mo, `id`, `name`, `link`, `postCode`, `city`, `department`…), celle de la recherche
+  du site. Le JS du site n'a pas d'autre point d'accès public : les messages ne sont que dans le HTML de la
+  page `/ville/<id>-<slug>` (un slug faux est redirigé en 301 vers le bon ; `/ville/<id>` seul part vers
+  `/embeded/…` ; id inconnu = 404). Pas de `robots.txt`.
+- Un message = un bloc `<div class="sign-carousel--item…" data-id="…">` (id stable, même après
+  « modifiée ») ; type par l'icône `/build/images/sign/<info|alert|event>.<hash>.svg` ; ligne de date
+  `Info publiée le …`, `Alerte modifiée le …`, `Le …`, `Du … au …`, `Jusqu'au …` ; `div.title` et
+  `div.content` (HTML Quill, caractères U+FEFF, `p.alert-date-prefix` avec l'heure d'une alerte). L'ordre
+  de la page n'est pas chronologique (messages épinglés) : le « dernier message » se calcule.
+- La liste ne contient aujourd'hui que des émetteurs français (une entrée suisse) : `countries: ["FR"]`.
+- Les pages contiennent la clé Google Maps du site et des coordonnées de personnes : à retirer de
+  toute nouvelle fixture.
+- Le SDK ne permet pas à une intégration `device` d'écrire à un utilisateur : « envoyer aux
+  utilisateurs choisis » passe par une scène (déclencheur `new_message` + action « Envoyer un
+  message » du cœur), documentée.
 
 ## Store
 
