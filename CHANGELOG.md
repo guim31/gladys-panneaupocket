@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-11-14
+
 ### Added
 
 - Search the PanneauPocket emitters (town halls, groupings of communes, schools, gendarmerie units)
@@ -24,4 +26,5 @@ the notes of the version's GitHub Release.
 - Feature names and texts in English, French, German and Spanish; documentation in the four
   languages.
 
-[Unreleased]: https://github.com/guim31/gladys-panneaupocket/commits/main
+[Unreleased]: https://github.com/guim31/gladys-panneaupocket/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/guim31/gladys-panneaupocket/releases/tag/v1.0.0
