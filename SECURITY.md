@@ -30,6 +30,11 @@ Gladys before reporting a problem.
 
 In scope: the code of this repository and the Docker image it publishes.
 
+The integration stores no secret: it uses no account and no key. Under `/data` it keeps the list
+of the PanneauPocket emitters (public data) and the ids of the messages already seen. Its only
+network traffic is HTTPS to `app.panneaupocket.com` (public pages and the public list of
+emitters), and to Gladys.
+
 Out of scope: Gladys Assistant itself (see its
 [security policy](https://github.com/GladysAssistant/Gladys/security/policy)),
-and the third-party services and devices the integration talks to.
+and PanneauPocket itself.
