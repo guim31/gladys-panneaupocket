@@ -62,7 +62,7 @@ código postal; puede cambiarle el nombre en Gladys.
 | Último mensaje    | Texto    | El más reciente, con su fecha, p. ej. `12/11 · APPEL À LA VIGILANCE`. |
 
 El último mensaje es el de fecha de publicación (o de modificación) más reciente; un evento sin
-fecha de publicación cuenta desde el día en que la integración lo vio aparecer.
+fecha de publicación cuenta desde el día en que la integración lo vio aparecer, y los ya publicados al añadir el emisor, sin fecha, van al final.
 
 ## Widget del panel
 
@@ -137,7 +137,7 @@ lectura: entonces hará falta una actualización de la integración.
 - Un mensaje nuevo se ve dentro del intervalo de lectura, no al segundo: para una alerta urgente,
   la aplicación PanneauPocket sigue siendo la referencia.
 - Como máximo 10 mensajes nuevos anunciados por página y por lectura: un emisor que publica más de
-  una vez solo ve anunciados los 10 más antiguos; el dispositivo y el widget los muestran todos.
+  una vez solo ve anunciados los 10 más antiguos, más todas sus alertas; el dispositivo y el widget los muestran todos.
 - Los mensajes están en francés, tal como los escriben los emisores; las imágenes solo se dan por
   su enlace.
 - Solo se encuentran los emisores de la lista pública del sitio; hoy solo contiene emisores

@@ -14,6 +14,8 @@ import { fetchEmitters } from './panneaupocket.js';
 const HOUR = 60 * 60 * 1000;
 export const LIST_MAX_AGE_MS = 24 * HOUR;
 export const LIST_RETRY_MS = HOUR;
+// Without any list, a failed reading is tried again sooner.
+export const FIRST_LIST_RETRY_MS = 5 * 60 * 1000;
 
 export class Directory {
   /**
@@ -31,6 +33,7 @@ export class Directory {
     this.fetchedAt = null;
     this.lastAttemptAt = -Infinity;
     this.loaded = false;
+    this.ensuring = null;
   }
 
   async load() {
@@ -45,8 +48,13 @@ export class Directory {
   }
 
   use(emitters, fetchedAt) {
-    this.emitters = emitters;
-    this.byId = new Map(emitters.map((emitter) => [emitter.id, emitter]));
+    // Folded once: a name search runs over the whole list.
+    this.emitters = emitters.map((emitter) => ({
+      ...emitter,
+      foldedCity: fold(emitter.city),
+      foldedName: ` ${fold(emitter.name)} `,
+    }));
+    this.byId = new Map(this.emitters.map((emitter) => [emitter.id, emitter]));
     this.fetchedAt = fetchedAt;
   }
 
@@ -60,8 +68,17 @@ export class Directory {
    * the error of the reading when none is.
    */
   async ensure() {
+    // One reading at a time: a scan during the start waits for it.
+    this.ensuring ??= this.refresh().finally(() => {
+      this.ensuring = null;
+    });
+    return this.ensuring;
+  }
+
+  async refresh() {
     await this.load();
-    if (!this.stale || this.now() - this.lastAttemptAt < LIST_RETRY_MS) {
+    const retry = this.emitters === null ? FIRST_LIST_RETRY_MS : LIST_RETRY_MS;
+    if (!this.stale || this.now() - this.lastAttemptAt < retry) {
       return this.emitters !== null;
     }
     this.lastAttemptAt = this.now();
@@ -73,7 +90,6 @@ export class Directory {
       if (this.emitters === null) {
         throw err;
       }
-      return true;
     }
     return true;
   }
@@ -104,7 +120,17 @@ export class Directory {
         found.set(emitter.id, emitter);
       }
     }
-    return { emitters: [...found.values()], unmatched, truncated };
+    return {
+      emitters: [...found.values()].map(({ id, name, postCode, city, link }) => ({
+        id,
+        name,
+        postCode,
+        city,
+        link,
+      })),
+      unmatched,
+      truncated,
+    };
   }
 
   match(term) {
@@ -121,7 +147,7 @@ export class Directory {
     const words = ` ${term.value} `;
     return sortByName(
       list.filter(
-        (emitter) => fold(emitter.city) === term.value || ` ${fold(emitter.name)} `.includes(words),
+        (emitter) => emitter.foldedCity === term.value || emitter.foldedName.includes(words),
       ),
     );
   }

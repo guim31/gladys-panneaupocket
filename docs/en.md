@@ -62,7 +62,7 @@ rename it in Gladys.
 | Latest message   | Text    | The newest one, with its date, e.g. `12/11 · APPEL À LA VIGILANCE`. |
 
 The latest message is the one with the most recent publication (or edit) date; an event without a
-publication date counts from the day the integration saw it appear.
+publication date counts from the day the integration saw it appear, and those already on display when the emitter was added, undated, come last.
 
 ## Dashboard widget
 
@@ -135,7 +135,7 @@ of the integration will then be needed.
 - A new message is seen within the reading interval, not to the second: for an urgent alert, the
   PanneauPocket app remains the reference.
 - At most 10 new messages announced per page and per reading: an emitter publishing more at once
-  only gets its 10 oldest announced; the device and the widget show them all.
+  only gets its 10 oldest announced, plus all its alerts; the device and the widget show them all.
 - The messages are in French, as the emitters write them; pictures are only given by their link.
 - Only the emitters of the site's public list are found; today it only holds French emitters.
 - The integration keeps the messages already seen under `/data`: if this volume is lost, the

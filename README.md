@@ -48,7 +48,7 @@ Spanish).
 - The page layout can change at any time and break the reading: an update will then be needed.
 - A new message is seen within the reading interval; the PanneauPocket app stays the reference for
   urgent alerts.
-- At most 10 new messages announced per page and per reading.
+- At most 10 new messages announced per page and per reading, plus every alert.
 - The messages are in French; pictures are given by their link only.
 - Only the emitters of the site's public list (French today) can be followed.
 

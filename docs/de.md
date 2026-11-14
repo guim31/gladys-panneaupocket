@@ -64,8 +64,7 @@ Absenders und seine Postleitzahl; du kannst es in Gladys umbenennen.
 | Neueste Meldung    | Text   | Die neueste, mit ihrem Datum, z. B. `12.11. · APPEL À LA VIGILANCE`. |
 
 Die neueste Meldung ist die mit dem jüngsten Veröffentlichungs- (oder Änderungs-)Datum; eine
-Veranstaltung ohne Veröffentlichungsdatum zählt ab dem Tag, an dem die Integration sie erscheinen
-sah.
+Veranstaltung ohne Veröffentlichungsdatum zählt ab dem Tag, an dem die Integration sie erscheinen sah, und die beim Hinzufügen des Absenders bereits angezeigten, ohne Datum, kommen zuletzt.
 
 ## Dashboard-Widget
 
@@ -142,7 +141,7 @@ verhindern: Dann ist ein Update der Integration nötig.
 - Eine neue Meldung wird innerhalb des Leseintervalls gesehen, nicht auf die Sekunde: Für eine
   dringende Warnung bleibt die PanneauPocket-App die Referenz.
 - Höchstens 10 neue Meldungen pro Seite und Lesen werden angekündigt: Ein Absender, der mehr auf
-  einmal veröffentlicht, bekommt nur die 10 ältesten angekündigt; Gerät und Widget zeigen alle.
+  einmal veröffentlicht, bekommt nur die 10 ältesten angekündigt, dazu alle Warnungen; Gerät und Widget zeigen alle.
 - Die Meldungen sind auf Französisch, wie die Absender sie schreiben; Bilder werden nur als Link
   angegeben.
 - Nur die Absender der öffentlichen Liste der Website werden gefunden; sie enthält heute nur

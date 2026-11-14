@@ -25,6 +25,7 @@ export const USER_AGENT =
   'gladys-panneaupocket (Gladys Assistant integration; +https://github.com/guim31/gladys-panneaupocket)';
 
 export const TYPES = ['info', 'alert', 'event'];
+export const MIN_EMITTERS = 20;
 
 export class HttpError extends Error {
   /**
@@ -89,6 +90,11 @@ export function parseEmitters(body) {
       city: clean(entry.city),
       link: pageUrl(id, entry.link),
     });
+  }
+  // A list this short is a site change or an incident, not the 16,000
+  // emitters: refused, so the copy on disk keeps serving.
+  if (emitters.length < MIN_EMITTERS) {
+    throw new HttpError(`PanneauPocket sent a list of ${emitters.length} emitter(s)`);
   }
   return emitters;
 }

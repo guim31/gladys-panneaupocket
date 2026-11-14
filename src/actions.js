@@ -22,6 +22,9 @@ export const ACTION_TEXTS = { error: ERRORS };
 export async function readMessages(monitor, fields = {}) {
   const language = monitor.config.language;
   const only = fields.emitter ? emitterIdOf(monitor.gladys, fields.emitter) : null;
+  if (fields.emitter && !only) {
+    throw new Error(ERRORS[language]);
+  }
   const emitters = (await monitor.fresh(only)).filter((emitter) => monitor.pages.has(emitter.id));
   if (emitters.length === 0) {
     throw new Error(ERRORS[language]);

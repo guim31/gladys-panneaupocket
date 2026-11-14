@@ -172,3 +172,36 @@ test('the feature names follow the language of the configuration', async (t) => 
     ['Aktuelle Meldungen', 'Aktuelle Warnungen', 'Neueste Meldung'],
   );
 });
+
+test('a language change rewrites the latest message at once', async (t) => {
+  const w = await world(t);
+  const device = await create(w, COLLEMIERS);
+  assert.equal(lastState(w, device, 'latest_message'), 'Aucun message');
+  await w.fake.configUpdated({ search: '89100', language: 'en' });
+  assert.equal(lastState(w, device, 'latest_message'), 'No message');
+});
+
+test('beyond the cap of a reading, the alerts are still announced', async (t) => {
+  const w = await world(t);
+  await create(w, NAILLY);
+  for (let i = 0; i < 12; i += 1) {
+    w.site.publish(NAILLY, { messageId: String(800 + i), title: `Info ${i}` });
+  }
+  w.site.publish(NAILLY, { messageId: '899', title: 'Alerte crue', type: 'alert' });
+  await cycle(w);
+  const titles = w.fake.sceneEvents.map((e) => e.data.title);
+  assert.equal(titles.length, 11);
+  assert.ok(titles.includes('Alerte crue'));
+});
+
+test('a list suddenly empty is refused: the copy on disk keeps serving', async (t) => {
+  const site = createSite();
+  const clock = createClock();
+  const first = await world(t, { site, clock });
+  await first.app.stop();
+  site.emitters = [];
+  clock.advance(25 * 60 * 60 * 1000);
+  const second = await world(t, { site, clock, dataDir: first.dataDir });
+  assert.equal(second.fake.discoveredDevices.length, 20);
+  assert.equal(second.fake.connectionStatus.message, undefined);
+});

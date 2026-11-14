@@ -65,7 +65,7 @@ nom de l'émetteur et son code postal ; vous pouvez le renommer dans Gladys.
 | Dernier message   | Texte    | Le plus récent, avec sa date, ex. `12/11 · APPEL À LA VIGILANCE`. |
 
 Le dernier message est celui dont la date de publication (ou de modification) est la plus
-récente ; un événement sans date de publication compte du jour où l'intégration l'a vu paraître.
+récente ; un événement sans date de publication compte du jour où l'intégration l'a vu paraître, et ceux déjà affichés à l'ajout de l'émetteur, sans date, passent en dernier.
 
 ## Widget de tableau de bord
 
@@ -141,7 +141,7 @@ mise à jour de l'intégration sera alors nécessaire.
 - Un nouveau message est vu dans l'intervalle de lecture, pas à la seconde : pour une alerte
   urgente, l'application PanneauPocket reste la référence.
 - Au plus 10 nouveaux messages annoncés par page et par lecture : un émetteur qui publie d'un coup
-  plus que cela n'en annonce que les 10 plus anciens ; l'appareil et le widget les montrent tous.
+  plus que cela n'en annonce que les 10 plus anciens, plus toutes ses alertes ; l'appareil et le widget les montrent tous.
 - Les messages sont en français, tels que les émetteurs les écrivent ; les images ne sont données
   que par leur lien.
 - Seuls les émetteurs de la liste publique du site sont trouvés ; elle ne compte aujourd'hui que

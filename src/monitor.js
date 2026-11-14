@@ -84,6 +84,8 @@ export class Monitor {
     this.pages = new Map();
     // Emitter id → 'down' | 'missing' while its page cannot be read.
     this.pageErrors = new Map();
+    // Emitter id → time of the last reading attempt, successful or not.
+    this.attempts = new Map();
     this.search = { unmatched: [], truncated: false, listDown: false };
     this.statusMessage = undefined;
     this.cycleTimer = null;
@@ -121,7 +123,13 @@ export class Monitor {
     if (saved?.version === 1 && saved.emitters && typeof saved.emitters === 'object') {
       this.data = { ...emptyData(), ...saved };
     }
-    await this.publishDiscovered();
+    try {
+      await this.publishDiscovered();
+    } catch (err) {
+      // The followed emitters are read all the same; the next scan or
+      // reconnection offers the search again.
+      this.failed('discover', 'warn', `Publishing the discovered devices failed: ${err.message}`);
+    }
     logger.info(
       `Started: ${this.followed().length} emitter(s) followed, read every ${config.refreshMinutes} min`,
     );
@@ -146,6 +154,8 @@ export class Monitor {
     this.config = config;
     logger.info('Configuration saved');
     await this.publishDiscovered();
+    // The language may have changed: the latest message is written again.
+    await this.publishStates();
     this.schedule();
     this.requestRefresh();
   }
@@ -196,6 +206,7 @@ export class Monitor {
     await this.gladys.publishDiscoveredDevices(
       emitters.map((emitter) => buildDevice(this.gladys, emitter, language)),
     );
+    this.recovered('discover', 'Publishing the discovered devices works again');
     await this.updateConnectionStatus();
   }
 
@@ -254,10 +265,10 @@ export class Monitor {
     let first = true;
     for (const emitter of emitters) {
       if (this.stopped) {
-        return;
+        break;
       }
-      const page = this.pages.get(emitter.id);
-      if (page && this.now() - page.readAt < halfInterval) {
+      const attempt = this.attempts.get(emitter.id);
+      if (attempt !== undefined && this.now() - attempt < halfInterval) {
         continue;
       }
       if (!first && this.timings.spacingMs > 0) {
@@ -274,6 +285,8 @@ export class Monitor {
 
   /** Read one page, fire the trigger for its new messages, publish its states. */
   async read(emitter) {
+    // A page that fails is not tried again before half an interval either.
+    this.attempts.set(emitter.id, this.now());
     let parsed;
     try {
       parsed = await fetchMessages(this.fetch, emitter);
@@ -327,12 +340,22 @@ export class Monitor {
     logger.debug(
       `Emitter ${emitter.id}: ${messages.length} message(s), ${fresh.length} new${seen ? '' : ' (first reading, taken as known)'}`,
     );
+    // Saved before the triggers fire: a stop in the middle of a long cycle
+    // must not announce them again at the restart.
+    this.store.save(this.data);
     // Oldest first, so the scenes hear them in the order of publication.
+    // Beyond the cap, alerts are still all announced.
     const ordered = messages.filter((message) => fresh.some((f) => f.id === message.id)).reverse();
-    for (const [index, message] of ordered.entries()) {
-      if (index >= MAX_EVENTS_PER_PAGE) {
-        logger.debug(`${ordered.length - index} more new message(s) not announced`);
-        break;
+    let others = 0;
+    for (const message of ordered) {
+      if (message.type !== 'alert') {
+        others += 1;
+        if (others > MAX_EVENTS_PER_PAGE) {
+          logger.debug(
+            `New message ${message.id} not announced (more than ${MAX_EVENTS_PER_PAGE})`,
+          );
+          continue;
+        }
       }
       await this.fire(emitter, message);
     }
@@ -350,6 +373,7 @@ export class Monitor {
         delete this.data.emitters[id];
         this.pages.delete(id);
         this.pageErrors.delete(id);
+        this.attempts.delete(id);
       }
     }
   }
@@ -508,8 +532,11 @@ export class Monitor {
   async fresh(only = null) {
     const interval = this.config.refreshMinutes * MINUTE;
     const stale = this.followed().some((emitter) => {
-      const page = this.pages.get(emitter.id);
-      return (!only || emitter.id === only) && (!page || this.now() - page.readAt >= interval);
+      const attempt = this.attempts.get(emitter.id);
+      return (
+        (!only || emitter.id === only) &&
+        (attempt === undefined || this.now() - attempt >= interval)
+      );
     });
     if (stale) {
       await this.running;
